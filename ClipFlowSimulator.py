@@ -20,6 +20,7 @@ from Ui_MainWin import Ui_MainWindow
 # vert clair =  rgb(85, 255, 127)
 # rouge foncé = rgb(170, 0, 0)
 # rouge clair = rgb(255, 0, 0)
+# gris clair = rgb(240, 240, 240);
 
 logging.basicConfig(filename='clipflow.log',
                     level=logging.DEBUG,
@@ -84,8 +85,9 @@ class MainWindow:
             logging.info("COM port created: " + str(self.serial_com))
         except Exception as error:
             self.ui.lbl_com_status_text.setText("Erreur port série")
+            self.ui.lbl_com_status_text.setStyleSheet('background-color: rgb(255, 0, 0);')
             logging.error("Failed to start COM port: " + str(error))
-            return None  # On interrompt la fonction en retournant l'objet None
+
         # Création/paramétrage des objets
         self.flow_meter = FlowMeter()
 
@@ -137,12 +139,15 @@ class MainWindow:
         logging.debug("Triggering lever")
         self._timer.stop()
         # TODO détruire flowmeter
-        self.serial_com.stop()
+        if self.serial_com is not None and self.serial_com.isOpen():
+            self.serial_com.stop()
 
         # Mise à jour de l'interface
         self.ui.btn_lever.setEnabled(True)
         self.ui.lbl_lever.setText('Levé')
         self.ui.lbl_lever.setStyleSheet(self._lever_styles['Levé'])
+        self.ui.lbl_com_status_text.setStyleSheet('background-color: rgb(240, 240, 240);')
+        self.ui.lbl_com_status_text.setText('Déconnecté')
 
     def show(self):
         self.main_win.show()
