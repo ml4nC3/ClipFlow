@@ -416,7 +416,7 @@ color: rgb(255, 255, 255);</string>
       <string notr="true">background-color: rgb(240, 240, 240);</string>
      </property>
      <property name="text">
-      <string>Non connecté</string>
+      <string>Déconnecté</string>
      </property>
     </widget>
     <widget class="QSpinBox" name="spinBox_baudrate">
@@ -574,6 +574,22 @@ color: rgb(240, 240, 240);</string>
      </property>
      <property name="text">
       <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_time_count">
+     <property name="geometry">
+      <rect>
+       <x>211</x>
+       <y>205</y>
+       <width>47</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
    </widget>
