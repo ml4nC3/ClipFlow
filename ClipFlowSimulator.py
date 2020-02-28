@@ -46,6 +46,7 @@ class MainWindow:
         self.serial_com = None  # Création de l'attribut destiné à l'objet série
         self._serial_settings = {'PORT': 'COM2', 'BAUDRATE': 9600, 'TIMEOUT': 1}  # Paramètres liaison série
         self._starter_time = None
+        self._battery_voltage = 5000
 
         # Définition des couleurs du levier
         self._lever_styles = {'Baissé': 'background-color: rgb(85, 170, 127);\ncolor: rgb(240, 240, 240);',
@@ -74,6 +75,8 @@ class MainWindow:
         self.ui.btn_lever.clicked.connect(self.on_button_lever_click)
         self.ui.lineEdit_com_port.editingFinished.connect(self.on_serial_parameter_change)
         self.ui.spinBox_baudrate.valueChanged.connect(self.on_serial_parameter_change)
+        self.ui.vslider_battery.valueChanged.connect(self.on_voltage_changed)
+        self.ui.vslider_battery.sliderReleased.connect(self.on_voltage_slider_release)
 
         # Signaux des Timers
         self._timer.timeout.connect(self.on_timer_top)
@@ -87,6 +90,8 @@ class MainWindow:
                                             baudrate=self._serial_settings['BAUDRATE'],
                                             timeout=self._serial_settings['TIMEOUT'])
             logging.info("COM port created: " + str(self.serial_com))
+            self.ui.lbl_com_status_text.setText(f"Connecté sur {self._serial_settings['PORT']} "
+                                                f"à {self._serial_settings['BAUDRATE']} bauds")
         except Exception as error:
             self.ui.lbl_com_status_text.setText("Erreur port série")
             self.ui.lbl_com_status_text.setStyleSheet('background-color: rgb(255, 231, 232);')
@@ -102,6 +107,10 @@ class MainWindow:
         self.ui.lbl_lever.setText('Baissé')
         self.ui.lbl_lever.setStyleSheet(self._lever_styles['Baissé'])
         # TODO : voir si la modification de la stylesheet est bien la méthode préconisée pour changer la couleur
+        self.ui.lineEdit_com_port.setEnabled(False)
+        self.ui.spinBox_baudrate.setEnabled(False)
+
+        # Démarrage du timer principal
         self._timer.start(1000)
 
     def on_timer_top(self):
@@ -115,12 +124,12 @@ class MainWindow:
             if current_duration >= 8 and not self._flag_3_red_blinks:
                 self._flag_3_red_blinks = True
                 self._red_led_count = 6
-                self._red_led_blink_timer.start(300)
+                self._red_led_blink_timer.start(200)
         else:
             self.ui.lbl_time_count.setText('')
 
         # Clignotement LED verte pendant 4 minutes
-        if simulation_duration < 240:
+        if simulation_duration < 240 and self._battery_voltage > 1500:
             last_green_blink = timer() - self._green_led_last_blink
             if last_green_blink >= 5:
                 self._green_led_count = 2  # La LED doit faire 1 cligno donc 2 changements d'état
@@ -135,12 +144,22 @@ class MainWindow:
         self._off_time_pressed = timer()
 
     def on_btn_off_released(self):
+        self.ui.lbl_time_count.setText('')
         released_time = timer()
         off_pressed_duration = released_time - self._off_time_pressed
         self._off_time_pressed = None
         logging.debug(f"OFF button released at {str(released_time)} with duration {str(off_pressed_duration)}")
         # Comportement en fonction du temps d'appui du bouton
         if int(off_pressed_duration) >= 8:
+            self.lever_trigger()
+
+    def on_voltage_changed(self):
+        self.ui.lbl_battery_voltage.setText(f'{self.ui.vslider_battery.value()/1000}V')
+        # TODO battery voltage : afficher seulement 1 ou 2 chiffres après la virgule
+
+    def on_voltage_slider_release(self):
+        self._battery_voltage = self.ui.vslider_battery.value()
+        if self._battery_voltage < 1500 and self._starter_time is not None:
             self.lever_trigger()
 
     def on_serial_parameter_change(self):
@@ -162,14 +181,17 @@ class MainWindow:
             self._red_led_blink_timer.stop()
 
     def lever_trigger(self):
-        logging.debug("Triggering lever")
+        logging.info("Triggering lever")
         self._timer.stop()
         # TODO détruire flowmeter
         if self.serial_com is not None and self.serial_com.isOpen():
-            self.serial_com.stop()
+            self.serial_com.close()
 
         # Réinitialisation des paramètres
         self._flag_3_red_blinks = False
+        self._starter_time = None
+        self._green_led_last_blink = None
+        # TODO : vérifier la bonne réinitialisation de tous les paramètres de simulation ici
 
         # Mise à jour de l'interface
         self.ui.btn_lever.setEnabled(True)
@@ -177,6 +199,8 @@ class MainWindow:
         self.ui.lbl_lever.setStyleSheet(self._lever_styles['Levé'])
         self.ui.lbl_com_status_text.setStyleSheet('background-color: rgb(240, 240, 240);')
         self.ui.lbl_com_status_text.setText('Déconnecté')
+        self.ui.lineEdit_com_port.setEnabled(True)
+        self.ui.spinBox_baudrate.setEnabled(True)
 
     def show(self):
         self.main_win.show()
