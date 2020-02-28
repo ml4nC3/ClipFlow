@@ -48,42 +48,52 @@ class MainWindow:
         self._starter_time = None
         self._battery_voltage = 5000
 
+        # Initialisation de la machine à état
+        self._state = 'INIT'
+        self._handlers = {'INIT': 0,        # Etat d'initialisation de la machine
+                          'IDLE': 0,        # Etat de repos (débit nul ou instable)
+                          'DETECTING': 0,   # Détection de débit stable = comptage volume
+                          'TRIGGERED': 0}   # Fuite détectée et volume ou débit limite dépasssé
+
         # Définition des couleurs du levier
         self._lever_styles = {'Baissé': 'background-color: rgb(85, 170, 127);\ncolor: rgb(240, 240, 240);',
                               'Levé': 'background-color: rgb(170, 0, 0);\ncolor: rgb(240, 240, 240);'}
 
         # Création des caractéristiques de la LED verte
         self._green_led_last_blink = None       # Timestamp de la dernière séquence de cligno (évite un timer supp)
+        self._green_led_mode = ''               # Détermine le comportement de la LED
         self._green_led_state = False           # Etat actuel de la LED (False = éteinte / True = allumée)
         self._green_led_count = 0               # Nombre de changement d'état restants à réaliser
         self._green_led_blink_timer = QTimer()  # Timer pour gérer les clignotements
         self._green_led_styles = {True: 'background-color: rgb(85, 255, 127);',
-                                  False: 'background-color: rgb(0, 60, 0);'} # Couleurs de fond des objets label
+                                  False: 'background-color: rgb(0, 60, 0);'}  # Couleurs de fond des objets label
 
         # Création des caractéristiques de la LED rouge
-        self._flag_3_red_blinks = False     # Flag pour éviter la répétition des 3 blinks (voir on_timer_top)
+        self._flag_3_red_blinks = False         # Flag pour éviter la répétition des 3 blinks (voir on_timer_top)
+        self._red_led_mode = ''
         self._red_led_last_blink = None
         self._red_led_state = False
         self._red_led_count = 0
         self._red_led_blink_timer = QTimer()
+        self._red_led_alarm_timer = QTimer()    # Timer spécifique à la LED rouge pour clignoter après coupure
         self._red_led_styles = {True: 'background-color: rgb(255, 0, 0);',
                                 False: 'background-color: rgb(120, 0, 0);'}
 
         # Connexion des signaux de l'interface avec les méthodes correspondantes
-        self.ui.btn_off.pressed.connect(self.on_btn_off_pressed)
-        self.ui.btn_off.released.connect(self.on_btn_off_released)
-        self.ui.btn_lever.clicked.connect(self.on_button_lever_click)
-        self.ui.lineEdit_com_port.editingFinished.connect(self.on_serial_parameter_change)
-        self.ui.spinBox_baudrate.valueChanged.connect(self.on_serial_parameter_change)
-        self.ui.vslider_battery.valueChanged.connect(self.on_voltage_changed)
-        self.ui.vslider_battery.sliderReleased.connect(self.on_voltage_slider_release)
+        self.ui.btn_off.pressed.connect(self._on_btn_off_pressed)
+        self.ui.btn_off.released.connect(self._on_btn_off_released)
+        self.ui.btn_lever.clicked.connect(self._on_button_lever_click)
+        self.ui.lineEdit_com_port.editingFinished.connect(self._on_serial_parameter_change)
+        self.ui.spinBox_baudrate.valueChanged.connect(self._on_serial_parameter_change)
+        self.ui.vslider_battery.valueChanged.connect(self._on_voltage_changed)
+        self.ui.vslider_battery.sliderReleased.connect(self._on_voltage_slider_release)
 
         # Signaux des Timers
-        self._timer.timeout.connect(self.on_timer_top)
-        self._green_led_blink_timer.timeout.connect(self.green_led_blink)
-        self._red_led_blink_timer.timeout.connect(self.red_led_blink)
+        self._timer.timeout.connect(self._on_timer_top)
+        self._green_led_blink_timer.timeout.connect(self._green_led_blink_signal)
+        self._red_led_blink_timer.timeout.connect(self._red_led_blink_signal)
 
-    def on_button_lever_click(self):
+    def _on_button_lever_click(self):
         # Démarrage de la liaison série
         try:
             self.serial_com = serial.Serial(self._serial_settings['PORT'],
@@ -113,7 +123,7 @@ class MainWindow:
         # Démarrage du timer principal
         self._timer.start(1000)
 
-    def on_timer_top(self):
+    def _on_timer_top(self):
         """Méthode appelée à chaque top du Timer"""
         simulation_duration = int(timer() - self._starter_time)
 
@@ -128,22 +138,31 @@ class MainWindow:
         else:
             self.ui.lbl_time_count.setText('')
 
-        # Clignotement LED verte pendant 4 minutes
-        if simulation_duration < 240 and self._battery_voltage > 1500:
-            last_green_blink = timer() - self._green_led_last_blink
-            if last_green_blink >= 5:
-                self._green_led_count = 2  # La LED doit faire 1 cligno donc 2 changements d'état
-                self._green_led_last_blink = timer()
-                self._green_led_blink_timer.start(300)
+        # TODO mise à jour du débit en fonction des évènements en cours
+
+        # -----------------------------------------------------------------------------------------
+        if self._state == 'INHIBITION':     # Toutes les actions ci-dessous doivent être inhibées
+            return None                     # lorsque l'appareil est en mode inhibition
+        # -----------------------------------------------------------------------------------------
+
+        # Clignotement LED verte
+        last_green_blink = timer() - self._green_led_last_blink
+        if self._green_led_mode == 'DOUBLE' and last_green_blink >= 8:
+            self.green_led_blink(2)
+        elif self._green_led_mode == '' \
+                and simulation_duration < 240 \
+                and self._battery_voltage > 1500 \
+                and last_green_blink >= 5:
+            self.green_led_blink(1)
 
         current_flow = self.flow_meter.flow_measure()
         if current_flow > 0:
             logging.debug(f"current flowrate measure : {str(current_flow)}")
 
-    def on_btn_off_pressed(self):
+    def _on_btn_off_pressed(self):
         self._off_time_pressed = timer()
 
-    def on_btn_off_released(self):
+    def _on_btn_off_released(self):
         self.ui.lbl_time_count.setText('')
         released_time = timer()
         off_pressed_duration = released_time - self._off_time_pressed
@@ -152,28 +171,43 @@ class MainWindow:
         # Comportement en fonction du temps d'appui du bouton
         if int(off_pressed_duration) >= 8:
             self.lever_trigger()
+        elif int(off_pressed_duration) >= 4:
+            self._green_led_mode = 'DOUBLE'
+            self.green_led_blink(2)
 
-    def on_voltage_changed(self):
+    def _on_voltage_changed(self):
         self.ui.lbl_battery_voltage.setText(f'{self.ui.vslider_battery.value()/1000}V')
         # TODO battery voltage : afficher seulement 1 ou 2 chiffres après la virgule
 
-    def on_voltage_slider_release(self):
+    def _on_voltage_slider_release(self):
         self._battery_voltage = self.ui.vslider_battery.value()
         if self._battery_voltage < 1500 and self._starter_time is not None:
             self.lever_trigger()
 
-    def on_serial_parameter_change(self):
+    def _on_serial_parameter_change(self):
         self._serial_settings['PORT'] = self.ui.lineEdit_com_port.text()
         self._serial_settings['BAUDRATE'] = self.ui.spinBox_baudrate.value()
 
-    def green_led_blink(self):
+    def green_led_blink(self, count):
+        """Démarrer une séquence de clignotement de la LED verte"""
+        self._green_led_count = count * 2
+        self._green_led_last_blink = timer()
+        self._green_led_blink_timer.start(200)
+
+    def _green_led_blink_signal(self):
         self._green_led_state = not self._green_led_state
         self.ui.lbl_green_led.setStyleSheet(self._green_led_styles[self._green_led_state])
         self._green_led_count -= 1
         if self._green_led_count <= 0:
             self._green_led_blink_timer.stop()
 
-    def red_led_blink(self):
+    def red_led_blink(self, count):
+        """Démarrer une séquence de clignotement de la LED rouge"""
+        self._red_led_count = count * 2
+        self._red_led_last_blink = timer()
+        self._red_led_blink_timer.start(200)
+
+    def _red_led_blink_signal(self):
         self._red_led_state = not self._red_led_state
         self.ui.lbl_red_led.setStyleSheet(self._red_led_styles[self._red_led_state])
         self._red_led_count -= 1
@@ -181,6 +215,7 @@ class MainWindow:
             self._red_led_blink_timer.stop()
 
     def lever_trigger(self):
+        """Déclencher la coupure de l'arrivée d'eau"""
         logging.info("Triggering lever")
         self._timer.stop()
         # TODO détruire flowmeter
