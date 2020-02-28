@@ -1,0 +1,585 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>570</width>
+    <height>765</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>570</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>570</width>
+    <height>16777215</height>
+   </size>
+  </property>
+  <property name="font">
+   <font>
+    <family>Century Gothic</family>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>Clip Flow Simulator</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(255, 255, 255);</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QLabel" name="lbl_back_image">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>-10</y>
+      <width>571</width>
+      <height>611</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap>images/ClipFlowBackground.jpg</pixmap>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="gb_lever">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>430</y>
+      <width>131</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Century Gothic</family>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: None;</string>
+    </property>
+    <property name="title">
+     <string>Levier</string>
+    </property>
+    <widget class="QLabel" name="lbl_lever">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>111</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Century Gothic</family>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(170, 0, 0);
+color: rgb(240, 240, 240);</string>
+     </property>
+     <property name="text">
+      <string>Levé</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_lever">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>111</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Réarmer</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="gb_flow">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>480</y>
+      <width>121</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="title">
+     <string>Débit</string>
+    </property>
+    <widget class="QLabel" name="lbl_flow_value">
+     <property name="geometry">
+      <rect>
+       <x>6</x>
+       <y>22</y>
+       <width>111</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(85, 170, 255);
+color: rgb(255, 255, 255);</string>
+     </property>
+     <property name="text">
+      <string>0 L/s</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="gb_events">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>550</y>
+      <width>561</width>
+      <height>131</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="title">
+     <string>Evènements</string>
+    </property>
+    <widget class="QComboBox" name="cmbx_event_selector">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>20</y>
+       <width>131</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_event_selector">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>71</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Evènement :</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_event_start">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>121</x>
+       <y>50</y>
+       <width>91</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Lancer</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_event_create">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>50</y>
+       <width>91</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Créer</string>
+     </property>
+    </widget>
+    <widget class="QListView" name="listView_events">
+     <property name="geometry">
+      <rect>
+       <x>230</x>
+       <y>20</y>
+       <width>321</width>
+       <height>81</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_leak">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>100</y>
+       <width>71</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Fuite (mL/s) :</string>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="spinBox_leak_flowrate">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>100</y>
+       <width>61</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_leak_add">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>100</y>
+       <width>61</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Ajouter</string>
+     </property>
+    </widget>
+    <widget class="Line" name="line_leak">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>80</y>
+       <width>201</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_event_delete">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>230</x>
+       <y>104</y>
+       <width>141</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Supprimer</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_event_delete_all">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>400</x>
+       <y>104</y>
+       <width>151</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Tout Supprimer</string>
+     </property>
+    </widget>
+    <zorder>lbl_event_selector</zorder>
+    <zorder>cmbx_event_selector</zorder>
+    <zorder>btn_event_start</zorder>
+    <zorder>btn_event_create</zorder>
+    <zorder>listView_events</zorder>
+    <zorder>lbl_leak</zorder>
+    <zorder>spinBox_leak_flowrate</zorder>
+    <zorder>btn_leak_add</zorder>
+    <zorder>line_leak</zorder>
+    <zorder>btn_event_delete</zorder>
+    <zorder>btn_event_delete_all</zorder>
+   </widget>
+   <widget class="QGroupBox" name="gb_serial">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>690</y>
+      <width>561</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(255, 255, 255);</string>
+    </property>
+    <property name="title">
+     <string>Communication série</string>
+    </property>
+    <widget class="QLabel" name="lbl_com_port">
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>20</y>
+       <width>61</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Port série :</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_com_port">
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>20</y>
+       <width>81</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>COM2</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_baudrate">
+     <property name="geometry">
+      <rect>
+       <x>390</x>
+       <y>20</y>
+       <width>41</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Vitesse :</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_com_status">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>51</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Statut :</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_com_status_text">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>20</y>
+       <width>181</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(240, 240, 240);</string>
+     </property>
+     <property name="text">
+      <string>Non connecté</string>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="spinBox_baudrate">
+     <property name="geometry">
+      <rect>
+       <x>440</x>
+       <y>20</y>
+       <width>111</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="minimum">
+      <number>110</number>
+     </property>
+     <property name="maximum">
+      <number>256000</number>
+     </property>
+     <property name="value">
+      <number>9600</number>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="gb_battery">
+    <property name="geometry">
+     <rect>
+      <x>489</x>
+      <y>70</y>
+      <width>61</width>
+      <height>351</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Pile</string>
+    </property>
+    <widget class="QSlider" name="vslider_battery">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>30</y>
+       <width>22</width>
+       <height>271</height>
+      </rect>
+     </property>
+     <property name="maximum">
+      <number>5000</number>
+     </property>
+     <property name="singleStep">
+      <number>100</number>
+     </property>
+     <property name="pageStep">
+      <number>1</number>
+     </property>
+     <property name="sliderPosition">
+      <number>5000</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_battery_voltage">
+     <property name="geometry">
+      <rect>
+       <x>6</x>
+       <y>313</y>
+       <width>51</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(0, 0, 0);
+color: rgb(255, 255, 255);</string>
+     </property>
+     <property name="text">
+      <string>5V</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="gb_interface">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>130</y>
+      <width>261</width>
+      <height>221</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: None;
+color: rgb(240, 240, 240);</string>
+    </property>
+    <property name="title">
+     <string>Interface</string>
+    </property>
+    <widget class="QPushButton" name="btn_off">
+     <property name="geometry">
+      <rect>
+       <x>95</x>
+       <y>112</y>
+       <width>71</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Century Gothic</family>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: None;</string>
+     </property>
+     <property name="text">
+      <string>OFF</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_green_led">
+     <property name="geometry">
+      <rect>
+       <x>104</x>
+       <y>159</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(0, 60, 0);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_red_led">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>159</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(120, 0, 0);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
