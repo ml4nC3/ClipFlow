@@ -1,4 +1,5 @@
 # coding=utf-8
+# Import des librairies externes
 import sys
 import serial
 from timeit import default_timer as timer
@@ -13,6 +14,9 @@ from PyQt5.QtCore import QTimer
 from Ui_MainWin import Ui_MainWindow
 # Interface créée avec Qt Creator au format .ui et convertie en classe python avec la commande :
 # pyuic5 mainwindow.ui -o Ui_MainWin.py
+
+# Import des modules
+import FSM_LeakDetection as fsm_ld
 
 # Couleurs à utiliser :
 # vert_baissé = rgb(85, 170, 127)
@@ -38,30 +42,27 @@ class MainWindow:
         self.main_win = QMainWindow()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self.main_win)
+        # TODO Ajouter dialog de crédit
 
         # Création des objets nécessaires au fonctionnement
         self.flow_meter = None
+        self.leak_detection = None
         self._off_time_pressed = None
         self._timer = QTimer()  # Création du timer de cadencement du jeu
         self.serial_com = None  # Création de l'attribut destiné à l'objet série
         self._serial_settings = {'PORT': 'COM2', 'BAUDRATE': 9600, 'TIMEOUT': 1}  # Paramètres liaison série
         self._starter_time = None
         self._battery_voltage = 5000
-
-        # Initialisation de la machine à état
-        self._state = 'INIT'
-        self._handlers = {'INIT': 0,        # Etat d'initialisation de la machine
-                          'IDLE': 0,        # Etat de repos (débit nul ou instable)
-                          'DETECTING': 0,   # Détection de débit stable = comptage volume
-                          'TRIGGERED': 0}   # Fuite détectée et volume ou débit limite dépasssé
+        self._state = 'NORMAL'               # Détermine le mode de comportement de l'interface
 
         # Définition des couleurs du levier
         self._lever_styles = {'Baissé': 'background-color: rgb(85, 170, 127);\ncolor: rgb(240, 240, 240);',
                               'Levé': 'background-color: rgb(170, 0, 0);\ncolor: rgb(240, 240, 240);'}
 
+        # TODO envisager de créer les LED en tant qu'objet à part
         # Création des caractéristiques de la LED verte
         self._green_led_last_blink = None       # Timestamp de la dernière séquence de cligno (évite un timer supp)
-        self._green_led_mode = ''               # Détermine le comportement de la LED
+
         self._green_led_state = False           # Etat actuel de la LED (False = éteinte / True = allumée)
         self._green_led_count = 0               # Nombre de changement d'état restants à réaliser
         self._green_led_blink_timer = QTimer()  # Timer pour gérer les clignotements
@@ -109,16 +110,20 @@ class MainWindow:
 
         # Création/paramétrage des objets
         self.flow_meter = FlowMeter()
+        self.leak_detection = fsm_ld.LeakDetection()
         self._starter_time = timer()
         self._green_led_last_blink = self._starter_time
+        if self._red_led_alarm_timer.isActive():
+            self._red_led_alarm_timer.stop()
 
         # Paramétrage de l'interface
         self.ui.btn_lever.setEnabled(False)
         self.ui.lbl_lever.setText('Baissé')
         self.ui.lbl_lever.setStyleSheet(self._lever_styles['Baissé'])
         # TODO : voir si la modification de la stylesheet est bien la méthode préconisée pour changer la couleur
-        self.ui.lineEdit_com_port.setEnabled(False)
-        self.ui.spinBox_baudrate.setEnabled(False)
+        self.ui.lineEdit_com_port.setEnabled(False)     # |
+        self.ui.spinBox_baudrate.setEnabled(False)      # Désactive les champs de paramétrage de la liaison série.
+        self.green_led_blink(1)  # Déclenche un premier blink de la LED verte. Les suivants sont gérés par on_timer_top.
 
         # Démarrage du timer principal
         self._timer.start(1000)
@@ -138,18 +143,17 @@ class MainWindow:
         else:
             self.ui.lbl_time_count.setText('')
 
-        # TODO mise à jour du débit en fonction des évènements en cours
-
         # -----------------------------------------------------------------------------------------
-        if self._state == 'INHIBITION':     # Toutes les actions ci-dessous doivent être inhibées
+        if self._state == 'INHIBIT':     # Toutes les actions ci-dessous doivent être inhibées
             return None                     # lorsque l'appareil est en mode inhibition
         # -----------------------------------------------------------------------------------------
 
         # Clignotement LED verte
         last_green_blink = timer() - self._green_led_last_blink
-        if self._green_led_mode == 'DOUBLE' and last_green_blink >= 8:
+        if (self.leak_detection.get_state() == 'DETECTING' or self._state == 'INHIBIT')\
+                and last_green_blink >= 8:
             self.green_led_blink(2)
-        elif self._green_led_mode == '' \
+        elif self.leak_detection.get_state() == 'IDLE' \
                 and simulation_duration < 240 \
                 and self._battery_voltage > 1500 \
                 and last_green_blink >= 5:
@@ -158,6 +162,8 @@ class MainWindow:
         current_flow = self.flow_meter.flow_measure()
         if current_flow > 0:
             logging.debug(f"current flowrate measure : {str(current_flow)}")
+        # Exécution de la machine à état
+        self.leak_detection.run(current_flow)
 
     def _on_btn_off_pressed(self):
         self._off_time_pressed = timer()
@@ -172,7 +178,7 @@ class MainWindow:
         if int(off_pressed_duration) >= 8:
             self.lever_trigger()
         elif int(off_pressed_duration) >= 4:
-            self._green_led_mode = 'DOUBLE'
+            self._state = 'INHIBIT'
             self.green_led_blink(2)
 
     def _on_voltage_changed(self):
@@ -190,9 +196,9 @@ class MainWindow:
 
     def green_led_blink(self, count):
         """Démarrer une séquence de clignotement de la LED verte"""
-        self._green_led_count = count * 2
-        self._green_led_last_blink = timer()
-        self._green_led_blink_timer.start(200)
+        self._green_led_count = count * 2       # Pour chaque blink il faut 2 changements d'état
+        self._green_led_last_blink = timer()    #
+        self._green_led_blink_timer.start(200)  #
 
     def _green_led_blink_signal(self):
         self._green_led_state = not self._green_led_state
@@ -219,6 +225,7 @@ class MainWindow:
         logging.info("Triggering lever")
         self._timer.stop()
         # TODO détruire flowmeter
+        # TODO détruire leak_detection
         if self.serial_com is not None and self.serial_com.isOpen():
             self.serial_com.close()
 
@@ -246,6 +253,7 @@ class FlowMeter:
         self._flowrate = 0
 
     def flow_measure(self):
+        # TODO ajouter ici le calcul de la somme des débit de tous les évènements
         return self._flowrate
 
 

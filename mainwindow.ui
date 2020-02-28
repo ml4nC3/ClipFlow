@@ -6,20 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>570</width>
+    <width>575</width>
     <height>765</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>570</width>
+    <width>575</width>
     <height>0</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>570</width>
-    <height>16777215</height>
+    <width>575</width>
+    <height>1000</height>
    </size>
   </property>
   <property name="font">
@@ -163,7 +163,7 @@ color: rgb(255, 255, 255);</string>
    <widget class="QGroupBox" name="gb_events">
     <property name="geometry">
      <rect>
-      <x>0</x>
+      <x>5</x>
       <y>550</y>
       <width>561</width>
       <height>131</height>
@@ -339,7 +339,7 @@ color: rgb(255, 255, 255);</string>
    <widget class="QGroupBox" name="gb_serial">
     <property name="geometry">
      <rect>
-      <x>0</x>
+      <x>5</x>
       <y>690</y>
       <width>561</width>
       <height>51</height>
