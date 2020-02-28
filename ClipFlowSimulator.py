@@ -138,7 +138,7 @@ class MainWindow:
         self._timer.stop()
         # TODO détruire flowmeter
         self.serial_com.stop()
-        
+
         # Mise à jour de l'interface
         self.ui.btn_lever.setEnabled(True)
         self.ui.lbl_lever.setText('Levé')
