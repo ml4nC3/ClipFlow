@@ -8,9 +8,11 @@ import logging
 # Import des bibliothèques de Qt5
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QStyleFactory
 from PyQt5.QtWidgets import QMainWindow
-from PyQt5.QtWidgets import QTreeWidgetItemIterator
 from PyQt5.QtCore import QTimer
+
+QApplication.setStyle(QStyleFactory.create("GTK"))
 
 # Import de la définition de l'interface
 from Ui_MainWin import Ui_MainWindow
