@@ -27,7 +27,7 @@ class LeakDetection:
         self._previous_flow = 0
 
     def get_state(self):
-        return self._state
+        return self._null_flow, self._stable_flow, self._state, self._leak_time, self._current_volume
 
     def _update_flow_flags(self, current_flow):
         if current_flow > 0:
@@ -39,7 +39,6 @@ class LeakDetection:
         else:
             self._null_flow = True
         self._previous_flow = current_flow
-        # TODO envisager de convertir les attributs null & stable en variables passées en paramètres
 
     def on_state_init(self, current_flow):
         # Calcul des paramètres permettant de déterminer le vol limite pour un débit donné

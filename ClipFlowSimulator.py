@@ -57,6 +57,7 @@ class MainWindow:
         self._starter_time = None
         self._battery_voltage = 5000
         self._state = 'NORMAL'               # Détermine le mode de comportement de l'interface
+        self._fsm_leak_detection_info = (True, True, 'INIT', 0, 0)
 
         # Initialisation des évènements de consomation
         flush = dict(NAME="Chasse d'eau",
@@ -111,8 +112,8 @@ class MainWindow:
         self.ui.spinBox_baudrate.valueChanged.connect(self._on_serial_parameter_change)
         self.ui.vslider_battery.valueChanged.connect(self._on_voltage_changed)
         self.ui.vslider_battery.sliderReleased.connect(self._on_voltage_slider_release)
-        self.ui.cmbx_event_selector.currentIndexChanged.connect(self.on_event_selection)
-        self.ui.btn_event_start.clicked.connect(self.on_start_event)
+        self.ui.cmbx_event_selector.currentIndexChanged.connect(self._on_event_selection)
+        self.ui.btn_event_start.clicked.connect(self._on_start_event)
 
         # Signaux des Timers
         self._timer.timeout.connect(self._on_timer_top)
@@ -168,27 +169,37 @@ class MainWindow:
         else:
             self.ui.lbl_time_count.setText('')
 
-        # -----------------------------------------------------------------------------------------
-        if self._state == 'INHIBIT':     # Toutes les actions ci-dessous doivent être inhibées
-            return None                     # lorsque l'appareil est en mode inhibition
-        # -----------------------------------------------------------------------------------------
-
         # Clignotement LED verte
         last_green_blink = timer() - self._green_led_last_blink
-        if (self.leak_detection.get_state() == 'DETECTING' or self._state == 'INHIBIT')\
+        if (self._fsm_leak_detection_info[2] == 'DETECTING' or self._state == 'INHIBIT') \
                 and last_green_blink >= 8:
             self.green_led_blink(2)
-        elif self.leak_detection.get_state() == 'IDLE' \
+        elif self._fsm_leak_detection_info[2] == 'IDLE' \
                 and simulation_duration < 240 \
                 and self._battery_voltage > 1500 \
                 and last_green_blink >= 5:
             self.green_led_blink(1)
 
+        # -----------------------------------------------------------------------------------------
+        if self._state == 'INHIBIT':     # Toutes les actions ci-dessous doivent être inhibées
+            return None                     # lorsque l'appareil est en mode inhibition
+        # -----------------------------------------------------------------------------------------
+
         current_flow = self.flow_meter.flow_measure(self._tree_object_items)
         if current_flow > 0:
             logging.debug(f"current flowrate measure : {str(current_flow)}")
+
         # Exécution de la machine à état
         self.leak_detection.run(current_flow)
+        # Mise à jour des données de la machine à état
+        self._fsm_leak_detection_info = self.leak_detection.get_state()
+        self.ui.lbl_null_flow_value.setText(str(self._fsm_leak_detection_info[0]))      # Débit nul
+        self.ui.lbl_stable_flow_value.setText(str(self._fsm_leak_detection_info[1]))    # Débit Stable
+        self.ui.lbl_fsm_state_value.setText(self._fsm_leak_detection_info[2])           # Etat de la machine
+        self.ui.lbl_leak_time_value.setText(str(self._fsm_leak_detection_info[3]))      # Temps de fuite
+        self.ui.lbl_leak_vol_value.setText(str(self._fsm_leak_detection_info[4]))       # Volume de fuite
+
+        # TODO ici gérer le mode alarme
 
     def _on_btn_off_pressed(self):
         self._off_time_pressed = timer()
@@ -245,17 +256,20 @@ class MainWindow:
         if self._red_led_count <= 0:
             self._red_led_blink_timer.stop()
 
-    def on_event_selection(self):
+    def _on_event_selection(self):
+        # Activation/Désactivation du bouton "Lancer" selon l'élément sélectionné dans la combobox
         if self.ui.cmbx_event_selector.currentIndex() == 0:
             self.ui.btn_event_start.setEnabled(False)
         else:
             self.ui.btn_event_start.setEnabled(True)
 
-    def on_start_event(self):
-        selected = self.ui.cmbx_event_selector.currentIndex()
+    def _on_start_event(self):
+        selected = self.ui.cmbx_event_selector.currentIndex()   # Index sélectionné dans la combo box
+        # Création d'un nouveau tuple (élément QTreeWidget, instance FSM_Event) délégué à FlowMeter
         tree_item = self.flow_meter.start_flow_event(self.ui.tree_events, selected, self.events_list)
-        self.ui.cmbx_event_selector.setCurrentIndex(0)
+        # Ajout du tuple dans la liste _tree_object_items
         self._tree_object_items.append(tree_item)
+        self.ui.cmbx_event_selector.setCurrentIndex(0)  # Init de la combobox
 
     def lever_trigger(self):
         """Déclencher la coupure de l'arrivée d'eau"""
@@ -290,15 +304,16 @@ class FlowMeter:
         self._flowrate = 0
 
     def flow_measure(self, tree_object_items):
-        # Décrémentation du délai restant des évènements
-        for item in tree_object_items:
-            new_flow, reamining_time = item[1].run(int(item[0].text(1)))
-            # reamining_time = int(item[0].text(2))
-            # reamining_time -= 1
-            item[0].setText(1, str(new_flow))
-            item[0].setText(2, str(reamining_time))
-
-        # TODO ajouter ici le calcul de la somme des débit de tous les évènements
+        # Itération sur les évènements
+        total_flow = 0
+        for item in tree_object_items:    # Itération dans la liste de tuples (élément QTreeWidget, instance FSM_Event)
+            new_flow, reamining_time = item[1].run(int(item[0].text(1)))    # Exécution de la FSM Event
+            item[0].setText(1, str(new_flow))                               # Mise à jour du débit dans la ligne event
+            item[0].setText(2, str(reamining_time))                         # Mise à jour du temps restant de l'event
+            total_flow += new_flow                                          # Calcul du débit total
+            # TODO : détruire l'event quand il est à 0,0
+        # Renvoi de la somme total des débit en cours
+        self._flowrate = total_flow
         return self._flowrate
 
     def start_flow_event(self, tree_object, selected, events_list):
@@ -309,11 +324,12 @@ class FlowMeter:
         durations = events_list[selected]["DURATIONS"]
         duration = durations[0] + durations[1] + durations[2]
         item = QtWidgets.QTreeWidgetItem(tree_object, [name, str(0), str(duration)])
-        return item, event_object
+        return item, event_object  # Retour d'un tuple (élément QTreeWidget, instance FSM_Event créée)
+        # TODO Rappatrier l'attribut tree_object_items de MainWindow vers FlowMeter ?
 
 
 if __name__ == "__main__":
-    logging.info("Starting Application")
+    logging.info("#########################Starting Application#########################")
     app = QApplication(sys.argv)
 
     # Création de l'application

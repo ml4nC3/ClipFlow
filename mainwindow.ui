@@ -608,6 +608,171 @@ color: rgb(240, 240, 240);</string>
      </property>
     </widget>
    </widget>
+   <widget class="QGroupBox" name="gb_fsm_info">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>0</y>
+      <width>321</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(134, 136, 135);</string>
+    </property>
+    <property name="title">
+     <string>Machine à état</string>
+    </property>
+    <widget class="QLabel" name="lbl_nul_flow_text">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>19</y>
+       <width>71</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Débit nul :</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_stable_flow_text">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>37</y>
+       <width>71</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Débit stable :</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_stable_flow_value">
+     <property name="geometry">
+      <rect>
+       <x>85</x>
+       <y>37</y>
+       <width>41</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Vrai</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_null_flow_value">
+     <property name="geometry">
+      <rect>
+       <x>85</x>
+       <y>19</y>
+       <width>41</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Vrai</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_fsm_state_value">
+     <property name="geometry">
+      <rect>
+       <x>171</x>
+       <y>19</y>
+       <width>111</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Non démarrée</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_fsm_state_text">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>19</y>
+       <width>41</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Statut :</string>
+     </property>
+    </widget>
+    <widget class="Line" name="line">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>14</y>
+       <width>20</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_leak_vol_text">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>37</y>
+       <width>51</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Tps fuite :</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_leak_vol_value">
+     <property name="geometry">
+      <rect>
+       <x>268</x>
+       <y>37</y>
+       <width>51</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_leak_time_value">
+     <property name="geometry">
+      <rect>
+       <x>182</x>
+       <y>37</y>
+       <width>41</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbl_leak_time_text">
+     <property name="geometry">
+      <rect>
+       <x>217</x>
+       <y>37</y>
+       <width>51</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Vol fuite :</string>
+     </property>
+    </widget>
+   </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
