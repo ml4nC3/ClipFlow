@@ -21,7 +21,7 @@ from Ui_MainWin import Ui_MainWindow
 import FSM_LeakDetection as FsmLD
 import FSM_Events as FsmEv
 
-# Couleurs à utiliser :
+# Dénominations des couleurs utilisées :
 # vert_baissé = rgb(85, 170, 127)
 # vert foncé =  rgb(0, 85, 0)
 # vert clair =  rgb(85, 255, 127)
@@ -56,28 +56,8 @@ class MainWindow:
         self._serial_settings = {'PORT': 'COM2', 'BAUDRATE': 9600, 'TIMEOUT': 1}  # Paramètres liaison série
         self._starter_time = None
         self._battery_voltage = 5000
-        self._state = 'NORMAL'               # Détermine le mode de comportement de l'interface
+        self._state = 'NORMAL'  # Détermine le mode de comportement de l'interface
         self._fsm_leak_detection_info = (True, True, 'INIT', 0, 0)
-
-        # Initialisation des évènements de consomation
-        flush = dict(NAME="Chasse d'eau",
-                     DURATIONS=[2, 100, 70],
-                     MAX_FLOW=100)
-        shower = dict(NAME="Douche",
-                      DURATIONS=[5, 420, 3],
-                      MAX_FLOW=540)
-        bath = dict(NAME="Bain",
-                    DURATIONS=[2, 500, 2],
-                    MAX_FLOW=828)
-        hand_wash = dict(NAME="Lavage de mains",
-                         DURATIONS=[2, 10, 2],
-                         MAX_FLOW=375)
-        self.events_list = [flush, hand_wash, shower, bath]
-        self.ui.cmbx_event_selector.addItem(None)
-        for event in self.events_list:
-            self.ui.cmbx_event_selector.addItem(event["NAME"])
-        self.events_list.insert(0, None)
-        self._tree_object_items = []
 
         # Définition des couleurs du levier
         self._lever_styles = {'Baissé': 'background-color: rgb(85, 170, 127);\ncolor: rgb(240, 240, 240);',
@@ -114,11 +94,14 @@ class MainWindow:
         self.ui.vslider_battery.sliderReleased.connect(self._on_voltage_slider_release)
         self.ui.cmbx_event_selector.currentIndexChanged.connect(self._on_event_selection)
         self.ui.btn_event_start.clicked.connect(self._on_start_event)
+        self.ui.btn_event_delete_all.clicked.connect(self._on_delete_all_button_click)
+        self.ui.btn_leak_add.clicked.connect(self.on_leak_add_button_click)
 
         # Signaux des Timers
         self._timer.timeout.connect(self._on_timer_top)
         self._green_led_blink_timer.timeout.connect(self._green_led_blink_signal)
         self._red_led_blink_timer.timeout.connect(self._red_led_blink_signal)
+        self._red_led_alarm_timer.timeout.connect(self._on_alarm_timer_top)
 
     def _on_button_lever_click(self):
         # Démarrage de la liaison série
@@ -135,14 +118,19 @@ class MainWindow:
             logging.error("Failed to start COM port: " + str(error))
 
         # Création/paramétrage des objets
-        self.flow_meter = FlowMeter()
+        self.flow_meter = FlowMeter(self.ui.cmbx_event_selector)
         self.leak_detection = FsmLD.LeakDetection()
         self._starter_time = timer()
         self._green_led_last_blink = self._starter_time
+        self._state = 'NORMAL'
         if self._red_led_alarm_timer.isActive():
             self._red_led_alarm_timer.stop()
 
         # Paramétrage de l'interface
+        self.ui.btn_event_delete_all.setEnabled(True)
+        self.ui.btn_leak_add.setEnabled(True)
+        self.ui.spinBox_leak_flowrate.setEnabled(True)
+        self.ui.cmbx_event_selector.setEnabled(True)
         self.ui.btn_lever.setEnabled(False)
         self.ui.lbl_lever.setText('Baissé')
         self.ui.lbl_lever.setStyleSheet(self._lever_styles['Baissé'])
@@ -182,12 +170,14 @@ class MainWindow:
 
         # -----------------------------------------------------------------------------------------
         if self._state == 'INHIBIT':     # Toutes les actions ci-dessous doivent être inhibées
+            self.leak_detection.run(0)
             return None                     # lorsque l'appareil est en mode inhibition
         # -----------------------------------------------------------------------------------------
 
-        current_flow = self.flow_meter.flow_measure(self._tree_object_items)
+        current_flow = self.flow_meter.flow_measure(self.ui.tree_events)
         if current_flow > 0:
             logging.debug(f"current flowrate measure : {str(current_flow)}")
+        self.ui.lbl_flow_value.setText(str(current_flow))
 
         # Exécution de la machine à état
         self.leak_detection.run(current_flow)
@@ -197,9 +187,13 @@ class MainWindow:
         self.ui.lbl_stable_flow_value.setText(str(self._fsm_leak_detection_info[1]))    # Débit Stable
         self.ui.lbl_fsm_state_value.setText(self._fsm_leak_detection_info[2])           # Etat de la machine
         self.ui.lbl_leak_time_value.setText(str(self._fsm_leak_detection_info[3]))      # Temps de fuite
-        self.ui.lbl_leak_vol_value.setText(str(self._fsm_leak_detection_info[4]))       # Volume de fuite
+        self.ui.lbl_leak_vol_value.setText(str(self._fsm_leak_detection_info[4]/1000))  # Volume de fuite
+        # TODO traduire les états de la machine dans l'affichage
 
-        # TODO ici gérer le mode alarme
+        # Activation du mode alarme
+        if self._fsm_leak_detection_info[2] == 'ALARM':
+            self._state = 'ALARM'
+            self.lever_trigger()
 
     def _on_btn_off_pressed(self):
         self._off_time_pressed = timer()
@@ -230,6 +224,15 @@ class MainWindow:
         self._serial_settings['PORT'] = self.ui.lineEdit_com_port.text()
         self._serial_settings['BAUDRATE'] = self.ui.spinBox_baudrate.value()
 
+    def _on_delete_all_button_click(self):
+        self.flow_meter.stop_all_events(self.ui.tree_events)
+
+    def _on_delete_button_click(self):
+        self.flow_meter.stop_event(self.ui.tree_events)
+
+    def on_leak_add_button_click(self):
+        self.flow_meter.add_leak(self.ui.tree_events, self.ui.spinBox_leak_flowrate.value())
+
     def green_led_blink(self, count):
         """Démarrer une séquence de clignotement de la LED verte"""
         self._green_led_count = count * 2       # Pour chaque blink il faut 2 changements d'état
@@ -256,6 +259,9 @@ class MainWindow:
         if self._red_led_count <= 0:
             self._red_led_blink_timer.stop()
 
+    def _on_alarm_timer_top(self):
+        self.red_led_blink(2)
+
     def _on_event_selection(self):
         # Activation/Désactivation du bouton "Lancer" selon l'élément sélectionné dans la combobox
         if self.ui.cmbx_event_selector.currentIndex() == 0:
@@ -266,17 +272,20 @@ class MainWindow:
     def _on_start_event(self):
         selected = self.ui.cmbx_event_selector.currentIndex()   # Index sélectionné dans la combo box
         # Création d'un nouveau tuple (élément QTreeWidget, instance FSM_Event) délégué à FlowMeter
-        tree_item = self.flow_meter.start_flow_event(self.ui.tree_events, selected, self.events_list)
-        # Ajout du tuple dans la liste _tree_object_items
-        self._tree_object_items.append(tree_item)
+        self.flow_meter.start_flow_event(self.ui.tree_events, selected)
         self.ui.cmbx_event_selector.setCurrentIndex(0)  # Init de la combobox
 
     def lever_trigger(self):
         """Déclencher la coupure de l'arrivée d'eau"""
         logging.info("Triggering lever")
         self._timer.stop()
-        # TODO détruire flowmeter
-        # TODO détruire leak_detection
+
+        # Arrêt des évènements
+        self.flow_meter.stop_all_events(self.ui.tree_events)
+        current_flow = self.flow_meter.flow_measure(self.ui.tree_events)
+        self.ui.lbl_flow_value.setText(str(current_flow))
+
+        # Arrêt de la communication série
         if self.serial_com is not None and self.serial_com.isOpen():
             self.serial_com.close()
 
@@ -287,6 +296,10 @@ class MainWindow:
         # TODO : vérifier la bonne réinitialisation de tous les paramètres de simulation ici
 
         # Mise à jour de l'interface
+        self.ui.btn_event_delete_all.setEnabled(False)
+        self.ui.btn_leak_add.setEnabled(False)
+        self.ui.spinBox_leak_flowrate.setEnabled(False)
+        self.ui.cmbx_event_selector.setEnabled(False)
         self.ui.btn_lever.setEnabled(True)
         self.ui.lbl_lever.setText('Levé')
         self.ui.lbl_lever.setStyleSheet(self._lever_styles['Levé'])
@@ -295,41 +308,91 @@ class MainWindow:
         self.ui.lineEdit_com_port.setEnabled(True)
         self.ui.spinBox_baudrate.setEnabled(True)
 
+        # Gestion de l'alarme
+        if self._state == 'ALARM':
+            self._red_led_alarm_timer.start(8000)
+
     def show(self):
         self.main_win.show()
 
 
 class FlowMeter:
-    def __init__(self):
+    def __init__(self, event_selector):
         self._flowrate = 0
+        self._leak_number = 1
+        # Initialisation des évènements de consomation
+        flush = dict(NAME="Chasse d'eau",
+                     DURATIONS=[2, 100, 70],
+                     MAX_FLOW=100)
+        shower = dict(NAME="Douche",
+                      DURATIONS=[5, 420, 3],
+                      MAX_FLOW=540)
+        bath = dict(NAME="Bain",
+                    DURATIONS=[2, 500, 2],
+                    MAX_FLOW=828)
+        hand_wash = dict(NAME="Lavage de mains",
+                         DURATIONS=[2, 10, 2],
+                         MAX_FLOW=375)
+        self.events_list = [flush, hand_wash, shower, bath]
+        event_selector.addItem(None)
+        for event in self.events_list:
+            event_selector.addItem(event["NAME"])
+        self.events_list.insert(0, None)
+        self._tree_object_items = []
 
-    def flow_measure(self, tree_object_items):
+    def flow_measure(self, tree_object):
         # Itération sur les évènements
         total_flow = 0
-        for item in tree_object_items:    # Itération dans la liste de tuples (élément QTreeWidget, instance FSM_Event)
+        tree_object_items_copy = self._tree_object_items.copy()
+        # Itération dans la liste de tuples (élément QTreeWidget, instance FSM_Event)
+        for item in self._tree_object_items:
             new_flow, reamining_time = item[1].run(int(item[0].text(1)))    # Exécution de la FSM Event
-            item[0].setText(1, str(new_flow))                               # Mise à jour du débit dans la ligne event
-            item[0].setText(2, str(reamining_time))                         # Mise à jour du temps restant de l'event
-            total_flow += new_flow                                          # Calcul du débit total
-            # TODO : détruire l'event quand il est à 0,0
+            if new_flow == 0 and reamining_time == 0:
+                # TODO : détruire l'instance fsm_event, mais comment ?
+                tree_object.invisibleRootItem().removeChild(item[0])
+                tree_object_items_copy.remove(item)
+            else:
+                item[0].setText(1, str(new_flow))           # Mise à jour du débit dans la ligne event
+                item[0].setText(2, str(reamining_time))     # Mise à jour du temps restant de l'event
+                total_flow += new_flow                      # Calcul du débit total
         # Renvoi de la somme total des débit en cours
         self._flowrate = total_flow
+        self._tree_object_items = tree_object_items_copy
         return self._flowrate
 
-    def start_flow_event(self, tree_object, selected, events_list):
+    def start_flow_event(self, tree_object, selected):
         # Création d'un nouvel objet event
-        event_object = FsmEv.FlowEvent(events_list[selected]["DURATIONS"], events_list[selected]["MAX_FLOW"])
+        event_object = FsmEv.FlowEvent(self.events_list[selected]["DURATIONS"], self.events_list[selected]["MAX_FLOW"])
         # Création de la ligne dans l'interface
-        name = events_list[selected]["NAME"]
-        durations = events_list[selected]["DURATIONS"]
+        name = self.events_list[selected]["NAME"]
+        durations = self.events_list[selected]["DURATIONS"]
         duration = durations[0] + durations[1] + durations[2]
         item = QtWidgets.QTreeWidgetItem(tree_object, [name, str(0), str(duration)])
-        return item, event_object  # Retour d'un tuple (élément QTreeWidget, instance FSM_Event créée)
-        # TODO Rappatrier l'attribut tree_object_items de MainWindow vers FlowMeter ?
+        self._tree_object_items.append((item, event_object))
+
+    def stop_all_events(self, tree_object):
+        tree_object_items_copy = self._tree_object_items.copy()
+        # Itération dans la liste de tuples (élément QTreeWidget, instance FSM_Event)
+        for item in tree_object_items_copy:
+            tree_object.invisibleRootItem().removeChild(item[0])
+            self._tree_object_items.remove(item)
+        del tree_object_items_copy
+
+    def stop_event(self, tree_object):
+        pass
+
+    def add_leak(self, tree_object, leak_flow):
+        # Création d'un nouvel objet fuite
+        leak_object = FsmEv.Leak(leak_flow)
+        # Création de la ligne dans l'interface
+        name = f'Fuite {self._leak_number}'
+        self._leak_number += 1
+        item = QtWidgets.QTreeWidgetItem(tree_object, [name, str(0), '1000'])
+        self._tree_object_items.append((item, leak_object))
 
 
 if __name__ == "__main__":
-    logging.info("#########################Starting Application#########################")
+    logging.info("##############################Starting Application##############################")
     app = QApplication(sys.argv)
 
     # Création de l'application

@@ -27,6 +27,11 @@ class LeakDetection:
         self._previous_flow = 0
 
     def get_state(self):
+        logger.debug(f'null={self._null_flow}, '
+                     f'stable={self._stable_flow}, '
+                     f'state={self._state}, '
+                     f'leak time={self._leak_time}, '
+                     f'leak vol={self._current_volume}')
         return self._null_flow, self._stable_flow, self._state, self._leak_time, self._current_volume
 
     def _update_flow_flags(self, current_flow):
@@ -55,12 +60,13 @@ class LeakDetection:
     def on_state_idle(self, current_flow):
         self._leak_time = 0
         self._current_volume = 0
-        if not self._null_flow and self._stable_flow:
+        if current_flow >= self._config['FLOW_MAX']:
+            logger.info('Leack detection switching to ALARM because Flow Max excedeed')
+            return 'ALARM'
+        elif not self._null_flow and self._stable_flow:
             logger.info('Leack detection switching to DETECTING')
             return 'DETECTING'
         else:
-            logger.debug(f"Leack detection still on IDLE with"
-                         f"null_flow={self._null_flow} and stable_flow={self._stable_flow}")
             return 'IDLE'
 
     def on_state_detecting(self, current_flow):
@@ -70,14 +76,15 @@ class LeakDetection:
         else:
             self._leak_time += 1
             self._current_volume = int(current_flow * self._leak_time / 3.6)  # Result in mL
-            logger.debug(f'leak time = {self._current_volume} and current vol = {self._leak_time}')
+            logger.debug(f'leak time = {self._leak_time} and current vol = {self._current_volume}')
             # Détection des dépassements de limite soit du max soit du volume limite fonction du débit
             vol_max_exceeded = self._current_volume > self._config['VOL_HIGH'] * 1000
-            vol_limit_exceeded = self._current_volume >= self._slope * current_flow + self._y_intercept
-            if vol_max_exceeded or vol_limit_exceeded:
-                logger.info(f'Leak detected with limit={vol_limit_exceeded} and max={vol_max_exceeded}')
+            vol_limit_exceeded = self._current_volume >= self._slope * current_flow * 1000 + self._y_intercept
+            flow_max_exceeded = current_flow >= self._config['FLOW_MAX']
+            if vol_max_exceeded or vol_limit_exceeded or flow_max_exceeded:
+                logger.info(f'Leak detected with vol limit={vol_limit_exceeded}, '
+                            f'vol max={vol_max_exceeded} and flow={flow_max_exceeded}')
                 return 'ALARM'
-            logger.info('Leack detection still on DETECTING')
             return 'DETECTING'
 
     def on_state_alarm(self, current_flow):
