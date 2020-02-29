@@ -6,8 +6,10 @@ from timeit import default_timer as timer
 import logging
 
 # Import des bibliothèques de Qt5
+from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QTreeWidgetItemIterator
 from PyQt5.QtCore import QTimer
 
 # Import de la définition de l'interface
@@ -16,7 +18,8 @@ from Ui_MainWin import Ui_MainWindow
 # pyuic5 mainwindow.ui -o Ui_MainWin.py
 
 # Import des modules
-import FSM_LeakDetection as fsm_ld
+import FSM_LeakDetection as FsmLD
+import FSM_Events as FsmEv
 
 # Couleurs à utiliser :
 # vert_baissé = rgb(85, 170, 127)
@@ -55,6 +58,26 @@ class MainWindow:
         self._battery_voltage = 5000
         self._state = 'NORMAL'               # Détermine le mode de comportement de l'interface
 
+        # Initialisation des évènements de consomation
+        flush = dict(NAME="Chasse d'eau",
+                     DURATIONS=[2, 100, 70],
+                     MAX_FLOW=100)
+        shower = dict(NAME="Douche",
+                      DURATIONS=[5, 420, 3],
+                      MAX_FLOW=540)
+        bath = dict(NAME="Bain",
+                    DURATIONS=[2, 500, 2],
+                    MAX_FLOW=828)
+        hand_wash = dict(NAME="Lavage de mains",
+                         DURATIONS=[2, 10, 2],
+                         MAX_FLOW=375)
+        self.events_list = [flush, hand_wash, shower, bath]
+        self.ui.cmbx_event_selector.addItem(None)
+        for event in self.events_list:
+            self.ui.cmbx_event_selector.addItem(event["NAME"])
+        self.events_list.insert(0, None)
+        self._tree_object_items = []
+
         # Définition des couleurs du levier
         self._lever_styles = {'Baissé': 'background-color: rgb(85, 170, 127);\ncolor: rgb(240, 240, 240);',
                               'Levé': 'background-color: rgb(170, 0, 0);\ncolor: rgb(240, 240, 240);'}
@@ -88,6 +111,8 @@ class MainWindow:
         self.ui.spinBox_baudrate.valueChanged.connect(self._on_serial_parameter_change)
         self.ui.vslider_battery.valueChanged.connect(self._on_voltage_changed)
         self.ui.vslider_battery.sliderReleased.connect(self._on_voltage_slider_release)
+        self.ui.cmbx_event_selector.currentIndexChanged.connect(self.on_event_selection)
+        self.ui.btn_event_start.clicked.connect(self.on_start_event)
 
         # Signaux des Timers
         self._timer.timeout.connect(self._on_timer_top)
@@ -110,7 +135,7 @@ class MainWindow:
 
         # Création/paramétrage des objets
         self.flow_meter = FlowMeter()
-        self.leak_detection = fsm_ld.LeakDetection()
+        self.leak_detection = FsmLD.LeakDetection()
         self._starter_time = timer()
         self._green_led_last_blink = self._starter_time
         if self._red_led_alarm_timer.isActive():
@@ -159,7 +184,7 @@ class MainWindow:
                 and last_green_blink >= 5:
             self.green_led_blink(1)
 
-        current_flow = self.flow_meter.flow_measure()
+        current_flow = self.flow_meter.flow_measure(self._tree_object_items)
         if current_flow > 0:
             logging.debug(f"current flowrate measure : {str(current_flow)}")
         # Exécution de la machine à état
@@ -220,6 +245,18 @@ class MainWindow:
         if self._red_led_count <= 0:
             self._red_led_blink_timer.stop()
 
+    def on_event_selection(self):
+        if self.ui.cmbx_event_selector.currentIndex() == 0:
+            self.ui.btn_event_start.setEnabled(False)
+        else:
+            self.ui.btn_event_start.setEnabled(True)
+
+    def on_start_event(self):
+        selected = self.ui.cmbx_event_selector.currentIndex()
+        tree_item = self.flow_meter.start_flow_event(self.ui.tree_events, selected, self.events_list)
+        self.ui.cmbx_event_selector.setCurrentIndex(0)
+        self._tree_object_items.append(tree_item)
+
     def lever_trigger(self):
         """Déclencher la coupure de l'arrivée d'eau"""
         logging.info("Triggering lever")
@@ -252,9 +289,27 @@ class FlowMeter:
     def __init__(self):
         self._flowrate = 0
 
-    def flow_measure(self):
+    def flow_measure(self, tree_object_items):
+        # Décrémentation du délai restant des évènements
+        for item in tree_object_items:
+            new_flow, reamining_time = item[1].run(int(item[0].text(1)))
+            # reamining_time = int(item[0].text(2))
+            # reamining_time -= 1
+            item[0].setText(1, str(new_flow))
+            item[0].setText(2, str(reamining_time))
+
         # TODO ajouter ici le calcul de la somme des débit de tous les évènements
         return self._flowrate
+
+    def start_flow_event(self, tree_object, selected, events_list):
+        # Création d'un nouvel objet event
+        event_object = FsmEv.FlowEvent(events_list[selected]["DURATIONS"], events_list[selected]["MAX_FLOW"])
+        # Création de la ligne dans l'interface
+        name = events_list[selected]["NAME"]
+        durations = events_list[selected]["DURATIONS"]
+        duration = durations[0] + durations[1] + durations[2]
+        item = QtWidgets.QTreeWidgetItem(tree_object, [name, str(0), str(duration)])
+        return item, event_object
 
 
 if __name__ == "__main__":

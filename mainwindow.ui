@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>575</width>
-    <height>765</height>
+    <height>782</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -166,7 +166,7 @@ color: rgb(255, 255, 255);</string>
       <x>5</x>
       <y>550</y>
       <width>561</width>
-      <height>131</height>
+      <height>151</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -179,7 +179,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>20</y>
+       <y>30</y>
        <width>131</width>
        <height>22</height>
       </rect>
@@ -189,7 +189,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>20</y>
+       <y>30</y>
        <width>71</width>
        <height>21</height>
       </rect>
@@ -205,7 +205,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>121</x>
-       <y>50</y>
+       <y>60</y>
        <width>91</width>
        <height>23</height>
       </rect>
@@ -221,7 +221,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>50</y>
+       <y>60</y>
        <width>91</width>
        <height>23</height>
       </rect>
@@ -230,21 +230,11 @@ color: rgb(255, 255, 255);</string>
       <string>Créer</string>
      </property>
     </widget>
-    <widget class="QListView" name="listView_events">
-     <property name="geometry">
-      <rect>
-       <x>230</x>
-       <y>20</y>
-       <width>321</width>
-       <height>81</height>
-      </rect>
-     </property>
-    </widget>
     <widget class="QLabel" name="lbl_leak">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>100</y>
+       <y>120</y>
        <width>71</width>
        <height>21</height>
       </rect>
@@ -257,7 +247,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>100</y>
+       <y>120</y>
        <width>61</width>
        <height>22</height>
       </rect>
@@ -270,7 +260,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>150</x>
-       <y>100</y>
+       <y>120</y>
        <width>61</width>
        <height>23</height>
       </rect>
@@ -283,7 +273,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>80</y>
+       <y>93</y>
        <width>201</width>
        <height>16</height>
       </rect>
@@ -299,7 +289,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>230</x>
-       <y>104</y>
+       <y>120</y>
        <width>141</width>
        <height>23</height>
       </rect>
@@ -315,7 +305,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>400</x>
-       <y>104</y>
+       <y>120</y>
        <width>151</width>
        <height>23</height>
       </rect>
@@ -324,23 +314,48 @@ color: rgb(255, 255, 255);</string>
       <string>Tout Supprimer</string>
      </property>
     </widget>
+    <widget class="QTreeWidget" name="tree_events">
+     <property name="geometry">
+      <rect>
+       <x>230</x>
+       <y>20</y>
+       <width>321</width>
+       <height>91</height>
+      </rect>
+     </property>
+     <column>
+      <property name="text">
+       <string>Evènements</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Débit (L/s)</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Temps restant (s)</string>
+      </property>
+     </column>
+    </widget>
     <zorder>lbl_event_selector</zorder>
     <zorder>cmbx_event_selector</zorder>
     <zorder>btn_event_start</zorder>
     <zorder>btn_event_create</zorder>
-    <zorder>listView_events</zorder>
     <zorder>lbl_leak</zorder>
     <zorder>spinBox_leak_flowrate</zorder>
     <zorder>btn_leak_add</zorder>
     <zorder>line_leak</zorder>
     <zorder>btn_event_delete</zorder>
     <zorder>btn_event_delete_all</zorder>
+    <zorder>tree_events</zorder>
    </widget>
    <widget class="QGroupBox" name="gb_serial">
     <property name="geometry">
      <rect>
       <x>5</x>
-      <y>690</y>
+      <y>709</y>
       <width>561</width>
       <height>51</height>
      </rect>
