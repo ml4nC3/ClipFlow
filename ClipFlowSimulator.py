@@ -118,6 +118,7 @@ class MainWindow:
             logging.error("Failed to start COM port: " + str(error))
 
         # Création/paramétrage des objets
+        # TODO bug : ne pas regénérer flow meter s'il existe déjà
         self.flow_meter = FlowMeter(self.ui.cmbx_event_selector)
         self.leak_detection = FsmLD.LeakDetection()
         self._starter_time = timer()
@@ -160,7 +161,7 @@ class MainWindow:
         # Clignotement LED verte
         last_green_blink = timer() - self._green_led_last_blink
         if (self._fsm_leak_detection_info[2] == 'DETECTING' or self._state == 'INHIBIT') \
-                and last_green_blink >= 8:
+                and last_green_blink >= 8:  # TODO bug : inhibition repasse à 1bip si event ajouté...
             self.green_led_blink(2)
         elif self._fsm_leak_detection_info[2] == 'IDLE' \
                 and simulation_duration < 240 \

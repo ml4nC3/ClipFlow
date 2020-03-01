@@ -23,31 +23,39 @@ class FlowEvent:
         self._reduce_flow_step = int(self._flow_max / self._phases[2][1])
 
     def _flow_raise_phase(self, current_flow):
+        # Incrémentation du débit de l'event du pas calculé
         current_flow += self._raise_flow_step
+        # Bornage de la valeur du débit à la valeure max pour éviter les effets de seuil
         if current_flow > self._flow_max:
             current_flow = self._flow_max
+        # Calcul de la durée actuelle de l'évènement depuis son démarrage
         current_duration = int(timer() - self.start_time)
         if current_duration >= self._phases[0][1]:
+            # Si la durée de la phase est dépassée on passe à l'état suivant
             self._phase = 1
-        if current_flow == 0:
-            return 1, self._total_duration - current_duration
+        # Retour du débit calculé et de la durée actuelle à l'appelant pour mise à jour de l'interface
         return current_flow, self._total_duration - current_duration
 
     def _flow_stable_phase(self, current_flow):
+        # Calcul de la durée actuelle de l'évènement depuis son démarrage et passage à l'état suivant
         current_duration = int(timer() - self.start_time)
         if current_duration >= self._stable_end_time:
             self._phase = 2
+        # Retour du débit calculé et de la durée actuelle à l'appelant pour mise à jour de l'interface
         return self._flow_max, self._total_duration - current_duration
 
     def _flow_reduce_phase(self, current_flow):
         current_flow -= self._reduce_flow_step
         current_duration = int(timer() - self.start_time)
         if current_duration >= self._total_duration:
+            # Si la durée de l'event est écoulée on retourne 0,0 pour suppression
             return 0, 0
         return current_flow, self._total_duration - current_duration
 
     def run(self, current_flow):
+        # Récupération de la méthode à exécuter en fonction de l'état
         handler = self._phases[self._phase][0]
+        # Passage des résultats de la méthode directement à l'appelant pour mise à jour de l'interface
         return handler(current_flow)
 
     def __del__(self):
@@ -55,6 +63,7 @@ class FlowEvent:
         logger.info("Event terminated")
 
 
+# Classe assurant le comportement des fuites
 class Leak:
     def __init__(self, leak_flow):
         self._leak_flow = leak_flow
