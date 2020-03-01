@@ -7,19 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>810</width>
-    <height>797</height>
+    <height>830</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>800</width>
-    <height>0</height>
+    <width>810</width>
+    <height>830</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>810</width>
-    <height>1000</height>
+    <height>830</height>
    </size>
   </property>
   <property name="font">
@@ -166,7 +166,7 @@ color: rgb(255, 255, 255);</string>
       <x>10</x>
       <y>550</y>
       <width>791</width>
-      <height>221</height>
+      <height>251</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -182,7 +182,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>120</x>
-       <y>80</y>
+       <y>100</y>
        <width>181</width>
        <height>31</height>
       </rect>
@@ -192,7 +192,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>80</y>
+       <y>100</y>
        <width>101</width>
        <height>31</height>
       </rect>
@@ -211,7 +211,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>170</x>
-       <y>120</y>
+       <y>140</y>
        <width>131</width>
        <height>31</height>
       </rect>
@@ -227,7 +227,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>120</y>
+       <y>140</y>
        <width>131</width>
        <height>31</height>
       </rect>
@@ -240,7 +240,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>180</y>
+       <y>200</y>
        <width>91</width>
        <height>31</height>
       </rect>
@@ -259,7 +259,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>100</x>
-       <y>180</y>
+       <y>200</y>
        <width>101</width>
        <height>31</height>
       </rect>
@@ -278,7 +278,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>210</x>
-       <y>180</y>
+       <y>200</y>
        <width>91</width>
        <height>31</height>
       </rect>
@@ -291,7 +291,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>160</y>
+       <y>180</y>
        <width>291</width>
        <height>16</height>
       </rect>
@@ -307,7 +307,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>310</x>
-       <y>180</y>
+       <y>200</y>
        <width>221</width>
        <height>31</height>
       </rect>
@@ -323,7 +323,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>560</x>
-       <y>180</y>
+       <y>200</y>
        <width>221</width>
        <height>31</height>
       </rect>
@@ -338,7 +338,7 @@ color: rgb(255, 255, 255);</string>
        <x>310</x>
        <y>20</y>
        <width>471</width>
-       <height>151</height>
+       <height>171</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -366,11 +366,11 @@ color: rgb(255, 255, 255);</string>
        <x>10</x>
        <y>20</y>
        <width>291</width>
-       <height>51</height>
+       <height>71</height>
       </rect>
      </property>
      <property name="text">
-      <string>Simulez ici la consomation d'eau du réseau en sélectionnant un évènement puis en cliquant sur Lancer.</string>
+      <string>Simulez ici la consomation d'eau du réseau en sélectionnant un évènement puis en cliquant sur Lancer :</string>
      </property>
      <property name="textFormat">
       <enum>Qt::AutoText</enum>
@@ -399,7 +399,7 @@ color: rgb(255, 255, 255);</string>
     <property name="geometry">
      <rect>
       <x>540</x>
-      <y>330</y>
+      <y>320</y>
       <width>261</width>
       <height>211</height>
      </rect>
@@ -671,7 +671,7 @@ color: rgb(240, 240, 240);</string>
     <property name="geometry">
      <rect>
       <x>540</x>
-      <y>190</y>
+      <y>170</y>
       <width>261</width>
       <height>131</height>
      </rect>
@@ -685,9 +685,9 @@ color: rgb(240, 240, 240);</string>
     <widget class="QLabel" name="lbl_fsm_state_value">
      <property name="geometry">
       <rect>
-       <x>160</x>
+       <x>130</x>
        <y>20</y>
-       <width>91</width>
+       <width>121</width>
        <height>31</height>
       </rect>
      </property>
@@ -698,9 +698,9 @@ color: rgb(240, 240, 240);</string>
     <widget class="QLabel" name="lbl_fsm_state_text">
      <property name="geometry">
       <rect>
-       <x>60</x>
+       <x>10</x>
        <y>20</y>
-       <width>81</width>
+       <width>111</width>
        <height>31</height>
       </rect>
      </property>
@@ -714,9 +714,9 @@ color: rgb(240, 240, 240);</string>
     <widget class="QLabel" name="lbl_leak_vol_text">
      <property name="geometry">
       <rect>
-       <x>60</x>
+       <x>10</x>
        <y>50</y>
-       <width>81</width>
+       <width>111</width>
        <height>31</height>
       </rect>
      </property>
@@ -730,9 +730,9 @@ color: rgb(240, 240, 240);</string>
     <widget class="QLabel" name="lbl_leak_vol_value">
      <property name="geometry">
       <rect>
-       <x>160</x>
+       <x>130</x>
        <y>80</y>
-       <width>91</width>
+       <width>121</width>
        <height>31</height>
       </rect>
      </property>
@@ -743,9 +743,9 @@ color: rgb(240, 240, 240);</string>
     <widget class="QLabel" name="lbl_leak_time_value">
      <property name="geometry">
       <rect>
-       <x>160</x>
+       <x>130</x>
        <y>50</y>
-       <width>91</width>
+       <width>121</width>
        <height>31</height>
       </rect>
      </property>
@@ -756,9 +756,9 @@ color: rgb(240, 240, 240);</string>
     <widget class="QLabel" name="lbl_leak_time_text">
      <property name="geometry">
       <rect>
-       <x>60</x>
+       <x>10</x>
        <y>80</y>
-       <width>81</width>
+       <width>111</width>
        <height>31</height>
       </rect>
      </property>
@@ -774,7 +774,7 @@ color: rgb(240, 240, 240);</string>
     <property name="geometry">
      <rect>
       <x>540</x>
-      <y>70</y>
+      <y>50</y>
       <width>261</width>
       <height>101</height>
      </rect>
