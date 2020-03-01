@@ -12,8 +12,6 @@ from PyQt5.QtWidgets import QStyleFactory
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtCore import QTimer
 
-QApplication.setStyle(QStyleFactory.create("GTK"))
-
 # Import de la définition de l'interface
 from Ui_MainWin import Ui_MainWindow
 # Interface créée avec Qt Creator au format .ui et convertie en classe python avec la commande :
@@ -396,7 +394,8 @@ class FlowMeter:
 if __name__ == "__main__":
     logging.info("##############################Starting Application##############################")
     app = QApplication(sys.argv)
-
+    # app.setStyle(QStyleFactory.create("WindowsXP"))
+    # print(QStyleFactory.keys())
     # Création de l'application
     main_win = MainWindow()
     main_win.show()
