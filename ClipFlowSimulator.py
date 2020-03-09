@@ -20,6 +20,7 @@ from Ui_MainWin import Ui_MainWindow
 # Import des modules
 import FSM_LeakDetection as FsmLD
 import FSM_Events as FsmEv
+import SerialTransmitter as com
 
 # Dénominations des couleurs utilisées :
 # vert_baissé = rgb(85, 170, 127)
@@ -51,9 +52,9 @@ class MainWindow:
         self.flow_meter = None
         self.leak_detection = None
         self._off_time_pressed = None
-        self._timer = QTimer()  # Création du timer de cadencement du jeu
-        self.serial_com = None  # Création de l'attribut destiné à l'objet série
+        self._serial_com = com.ComTransmitter()
         self._serial_settings = {'PORT': 'COM2', 'BAUDRATE': 9600, 'TIMEOUT': 1}  # Paramètres liaison série
+        self._timer = QTimer()  # Création du timer de cadencement du jeu
         self._starter_time = None
         self._battery_voltage = 5000
         self._state = 'NORMAL'  # Détermine le mode de comportement de l'interface
@@ -105,17 +106,10 @@ class MainWindow:
 
     def _on_button_lever_click(self):
         # Démarrage de la liaison série
-        try:
-            self.serial_com = serial.Serial(self._serial_settings['PORT'],
-                                            baudrate=self._serial_settings['BAUDRATE'],
-                                            timeout=self._serial_settings['TIMEOUT'])
-            logging.info("COM port created: " + str(self.serial_com))
-            self.ui.lbl_com_status_text.setText(f"Connecté sur {self._serial_settings['PORT']} "
-                                                f"à {self._serial_settings['BAUDRATE']} bauds")
-        except Exception as error:
-            self.ui.lbl_com_status_text.setText("Erreur port série")
+        com_status = self._serial_com.start_transmission(self._serial_settings)
+        self.ui.lbl_com_status_text.setText(com_status['MESSAGE'])
+        if com_status['STATE'] == 'ERROR':
             self.ui.lbl_com_status_text.setStyleSheet('background-color: rgb(255, 231, 232);')
-            logging.error("Failed to start COM port: " + str(error))
 
         # Création/paramétrage des objets
         # TODO bug : ne pas regénérer flow meter s'il existe déjà
@@ -287,8 +281,7 @@ class MainWindow:
         self.ui.lbl_flow_value.setText(str(current_flow))
 
         # Arrêt de la communication série
-        if self.serial_com is not None and self.serial_com.isOpen():
-            self.serial_com.close()
+        self._serial_com.stop_transmission()
 
         # Réinitialisation des paramètres
         self._flag_3_red_blinks = False
