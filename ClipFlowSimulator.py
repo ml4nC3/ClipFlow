@@ -177,12 +177,14 @@ class MainWindow:
         self.ui.lbl_fsm_state_value.setText(self._fsm_leak_detection_info[2])           # Etat de la machine
         self.ui.lbl_leak_time_value.setText(str(self._fsm_leak_detection_info[3]))      # Temps de fuite en s
         self.ui.lbl_leak_vol_value.setText(str(self._fsm_leak_detection_info[4] / 1000))  # Volume de fuite en mL
-        self.ui.lbl_index_value.setText(str(self._fsm_leak_detection_info[5] / 1000))
+        self.ui.lbl_leak_vol_limit_value.setText(str(self._fsm_leak_detection_info[5] / 1000))
+        self.ui.lbl_index_value.setText(str(self._fsm_leak_detection_info[6] / 1000))
         # TODO traduire les états de la machine dans l'affichage
 
         # Transmission des données sur la liaison série
         self._serial_com.transmit_data(leak_vol=self._fsm_leak_detection_info[4],
-                                       total_vol=self._fsm_leak_detection_info[5])
+                                       limit_vol=self._fsm_leak_detection_info[5],
+                                       total_vol=self._fsm_leak_detection_info[6])
 
         # Activation du mode alarme
         if self._fsm_leak_detection_info[2] == 'ALARM' and self._state != 'INHIBIT':

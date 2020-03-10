@@ -49,10 +49,12 @@ class ComTransmitter:
                       flowrate=0,           # L/h
                       inhibit_duration=0,   # s
                       leak_vol=0,           # mL
+                      limit_vol=0,          # mL
                       away_duration=0,      # min
                       total_vol=0):         # L
 
         now = timer()
+        remaining_volume = limit_vol - leak_vol
         if (now - self._last_transmission > 12) or (leak_vol >= self._last_leak_vol + 1000):
             # Transmission des données
             try:
@@ -68,7 +70,7 @@ class ComTransmitter:
                                        + water_temp.to_bytes(1, byteorder='big')
                                        + int(flowrate / 1000).to_bytes(2, byteorder='big')
                                        + int(inhibit_duration / 60).to_bytes(2, byteorder='big')
-                                       + int(leak_vol / 1000).to_bytes(2, byteorder='big')
+                                       + int(remaining_volume / 1000).to_bytes(2, byteorder='big')
                                        + int(away_duration / 60).to_bytes(2, byteorder='big')
                                        + int(total_vol / 1000).to_bytes(3, byteorder='big'))
             except serial.serialutil.SerialException:
@@ -88,5 +90,6 @@ class ComTransmitter:
         return self._state
 
     def __del__(self):
-        if self._serial_com.isOpen():
-            self._serial_com.close()
+        if self._serial_com is not None:
+            if self._serial_com.isOpen():
+                self._serial_com.close()
