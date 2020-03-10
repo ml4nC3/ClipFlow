@@ -22,6 +22,7 @@ class LeakDetection:
         # Variables de comptage
         self._leak_time = 0
         self._current_volume = 0
+        self._index = 0
         # Variables calculées de la droite de déclenchement
         self._slope = 0
         self._y_intercept = 0
@@ -35,9 +36,10 @@ class LeakDetection:
                      f'stable={self._stable_flow}, '
                      f'state={self._state}, '
                      f'leak time={self._leak_time}, '
-                     f'leak vol={self._current_volume}')
+                     f'leak vol={self._current_volume}'
+                     f'index={self._index}')
         # Retour des paramètres internes de la machine à état pour affichage dans l'interface et gestion de l'alarme
-        return self._null_flow, self._stable_flow, self._state, self._leak_time, self._current_volume
+        return self._null_flow, self._stable_flow, self._state, self._leak_time, self._current_volume, self._index
 
     def _update_flow_flags(self, current_flow):
         # Mise à jour des drapeaux de comportement du débit mesuré
@@ -111,6 +113,7 @@ class LeakDetection:
         # Gestion de l'exécution de la machine
         # Mise à jour des drapeaux de comportement débit
         self._update_flow_flags(current_flow)
+        self._index += int(current_flow / 3.6)  # Incrémentation de l'index de volume total en mL
         # Récupération de la méthode à appeler en fonction de l'état en cours
         handle = self._handlers[self._state]
         # Mise à jour de l'état en fonction de l'exécution de la méthode récupérée
