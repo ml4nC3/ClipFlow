@@ -106,7 +106,7 @@ class MainWindow:
 
     def _on_button_lever_click(self):
         # Démarrage de la liaison série
-        com_status = self._serial_com.start_transmission(self._serial_settings)
+        com_status = self._serial_com.open_communication(self._serial_settings)
         self.ui.lbl_com_status_text.setText(com_status['MESSAGE'])
         if com_status['STATE'] == 'ERROR':
             self.ui.lbl_com_status_text.setStyleSheet('background-color: rgb(255, 231, 232);')
@@ -163,12 +163,6 @@ class MainWindow:
                 and last_green_blink >= 5:
             self.green_led_blink(1)
 
-        # -----------------------------------------------------------------------------------------
-        if self._state == 'INHIBIT':     # Toutes les actions ci-dessous doivent être inhibées
-            self.leak_detection.run(0)
-            return None                     # lorsque l'appareil est en mode inhibition
-        # -----------------------------------------------------------------------------------------
-
         current_flow = self.flow_meter.flow_measure(self.ui.tree_events)
         if current_flow > 0:
             logging.debug(f"current flowrate measure : {str(current_flow)}")
@@ -181,12 +175,15 @@ class MainWindow:
         self.ui.lbl_null_flow_value.setText(str(self._fsm_leak_detection_info[0]))      # Débit nul
         self.ui.lbl_stable_flow_value.setText(str(self._fsm_leak_detection_info[1]))    # Débit Stable
         self.ui.lbl_fsm_state_value.setText(self._fsm_leak_detection_info[2])           # Etat de la machine
-        self.ui.lbl_leak_time_value.setText(str(self._fsm_leak_detection_info[3]))      # Temps de fuite
-        self.ui.lbl_leak_vol_value.setText(str(self._fsm_leak_detection_info[4]/1000))  # Volume de fuite
+        self.ui.lbl_leak_time_value.setText(str(self._fsm_leak_detection_info[3]))      # Temps de fuite en s
+        self.ui.lbl_leak_vol_value.setText(str(self._fsm_leak_detection_info[4]/1000))  # Volume de fuite en mL
         # TODO traduire les états de la machine dans l'affichage
 
+        # Transmission des données sur la liaison série
+        self._serial_com.transmit_data(leak_vol=self._fsm_leak_detection_info[4])
+
         # Activation du mode alarme
-        if self._fsm_leak_detection_info[2] == 'ALARM':
+        if self._fsm_leak_detection_info[2] == 'ALARM' and self._state != 'INHIBIT':
             self._state = 'ALARM'
             self.lever_trigger()
 
@@ -212,7 +209,7 @@ class MainWindow:
 
     def _on_voltage_slider_release(self):
         self._battery_voltage = self.ui.vslider_battery.value()
-        if self._battery_voltage < 1500 and self._starter_time is not None:
+        if self._battery_voltage < 2500 and self._starter_time is not None:
             self.lever_trigger()
 
     def _on_serial_parameter_change(self):
@@ -281,7 +278,7 @@ class MainWindow:
         self.ui.lbl_flow_value.setText(str(current_flow))
 
         # Arrêt de la communication série
-        self._serial_com.stop_transmission()
+        com_status = self._serial_com.close_communication()
 
         # Réinitialisation des paramètres
         self._flag_3_red_blinks = False
@@ -290,6 +287,8 @@ class MainWindow:
         # TODO : vérifier la bonne réinitialisation de tous les paramètres de simulation ici
 
         # Mise à jour de l'interface
+        self.ui.lbl_com_status_text.setStyleSheet('background-color: rgb(240, 240, 240);')
+        self.ui.lbl_com_status_text.setText(com_status['MESSAGE'])
         self.ui.btn_event_delete_all.setEnabled(False)
         self.ui.btn_leak_add.setEnabled(False)
         self.ui.spinBox_leak_flowrate.setEnabled(False)
@@ -297,8 +296,6 @@ class MainWindow:
         self.ui.btn_lever.setEnabled(True)
         self.ui.lbl_lever.setText('Levé')
         self.ui.lbl_lever.setStyleSheet(self._lever_styles['Levé'])
-        self.ui.lbl_com_status_text.setStyleSheet('background-color: rgb(240, 240, 240);')
-        self.ui.lbl_com_status_text.setText('Déconnecté')
         self.ui.lineEdit_com_port.setEnabled(True)
         self.ui.spinBox_baudrate.setEnabled(True)
 
