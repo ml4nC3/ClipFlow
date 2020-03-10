@@ -68,7 +68,7 @@ class ComTransmitter:
                                        + int(batt_voltage / 100).to_bytes(1, byteorder='big')
                                        + int(capa_voltage / 100).to_bytes(1, byteorder='big')
                                        + water_temp.to_bytes(1, byteorder='big')
-                                       + int(flowrate / 1000).to_bytes(2, byteorder='big')
+                                       + int(flowrate).to_bytes(2, byteorder='big')
                                        + int(inhibit_duration / 60).to_bytes(2, byteorder='big')
                                        + int(remaining_volume / 1000).to_bytes(2, byteorder='big')
                                        + int(away_duration / 60).to_bytes(2, byteorder='big')

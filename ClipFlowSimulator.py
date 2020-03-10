@@ -184,6 +184,7 @@ class MainWindow:
         # Transmission des données sur la liaison série
         self._serial_com.transmit_data(leak_vol=self._fsm_leak_detection_info[4],
                                        limit_vol=self._fsm_leak_detection_info[5],
+                                       flowrate=current_flow,
                                        total_vol=self._fsm_leak_detection_info[6])
 
         # Activation du mode alarme
