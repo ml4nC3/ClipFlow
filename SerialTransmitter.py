@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)    # Récupération du logger créé dans l
 
 
 class ComTransmitter:
+    # TODO : convertir cette classe de sorte à ce qu'elle soit compatible avec "With" ? (https://youtu.be/iba-I4CrmyA)
     def __init__(self, ):
         self._serial_com = None
         self._state = dict(STATE='STOPPED', MESSAGE='Liaison non démarrée')

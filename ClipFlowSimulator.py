@@ -170,12 +170,13 @@ class MainWindow:
 
         # Exécution de la machine à état
         self.leak_detection.run(current_flow)
+
         # Mise à jour des données de la machine à état
         self._fsm_leak_detection_info = self.leak_detection.get_state()
-        self.ui.lbl_null_flow_value.setText(str(self._fsm_leak_detection_info[0]))      # Débit nul
-        self.ui.lbl_stable_flow_value.setText(str(self._fsm_leak_detection_info[1]))    # Débit Stable
-        self.ui.lbl_fsm_state_value.setText(self._fsm_leak_detection_info[2])           # Etat de la machine
-        self.ui.lbl_leak_time_value.setText(str(self._fsm_leak_detection_info[3]))      # Temps de fuite en s
+        self.ui.lbl_null_flow_value.setText(str(self._fsm_leak_detection_info[0]))        # Débit nul
+        self.ui.lbl_stable_flow_value.setText(str(self._fsm_leak_detection_info[1]))      # Débit Stable
+        self.ui.lbl_fsm_state_value.setText(self._fsm_leak_detection_info[2])             # Etat de la machine
+        self.ui.lbl_leak_time_value.setText(str(self._fsm_leak_detection_info[3]))        # Temps de fuite en s
         self.ui.lbl_leak_vol_value.setText(str(self._fsm_leak_detection_info[4] / 1000))  # Volume de fuite en mL
         self.ui.lbl_leak_vol_limit_value.setText(str(self._fsm_leak_detection_info[5] / 1000))
         self.ui.lbl_index_value.setText(str(self._fsm_leak_detection_info[6] / 1000))
